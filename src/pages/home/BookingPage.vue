@@ -54,13 +54,13 @@
             </div>
             <div class="flex justify-between">
               <span>Taxes & Fees</span>
-              <span>₦{{ formatNumber(room?.room_type?.price ?? 0) }}</span>
+              <span>₦{{ formatNumber(room?.room_type?.price!) }}</span>
             </div>
           </div>
           <hr class="my-4" />
           <div class="flex justify-between font-bold text-blue-600">
             <span>Total</span>
-            <span>₦{{ formatNumber(room?.room_type?.price ?? 0) }}</span>
+            <span>₦{{ formatNumber(room?.room_type?.price!) }}</span>
           </div>
         </div>
       </div>

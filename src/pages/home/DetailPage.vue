@@ -24,10 +24,12 @@
                   <DestinationCard
                     v-for="room in rooms"
                     :key="room.id"
+                    :id="room.id"
                     :title="room.name"
                     :description="room.description"
                     :price="room.price"
                     :image="room.image"
+                    :images="room.images"
                     :slug="slugify(room.name, { lower: true })"
                     :loading="isLoading"
                   />
