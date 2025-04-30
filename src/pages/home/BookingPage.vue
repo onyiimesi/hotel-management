@@ -37,12 +37,11 @@
           </div>
         </div>
 
-        <!-- Right Section: Summary -->
         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 sticky top-24 h-fit">
           <h3 class="text-lg font-semibold mb-4 text-gray-900">Booking Summary</h3>
           <div class="text-sm text-gray-700 space-y-2">
             <p><strong>Room:</strong> {{ room?.name }}</p>
-            <p><strong>Description:</strong> {{ room?.room_type?.description }}</p>
+            <p v-html="room?.room_type?.description"></p>
             <p><strong>Guests:</strong> {{ room?.room_type?.guests }}</p>
             <p><strong>Check-in:</strong> Apr 29</p>
             <p><strong>Check-out:</strong> May 2</p>
@@ -55,13 +54,13 @@
             </div>
             <div class="flex justify-between">
               <span>Taxes & Fees</span>
-              <span>₦{{ formatNumber(room?.room_type?.price) }}</span>
+              <span>₦{{ formatNumber(room?.room_type?.price ?? 0) }}</span>
             </div>
           </div>
           <hr class="my-4" />
           <div class="flex justify-between font-bold text-blue-600">
             <span>Total</span>
-            <span>₦{{ formatNumber(room?.room_type?.price) }}</span>
+            <span>₦{{ formatNumber(room?.room_type?.price ?? 0) }}</span>
           </div>
         </div>
       </div>
