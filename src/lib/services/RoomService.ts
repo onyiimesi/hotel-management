@@ -6,3 +6,8 @@ export async function getAvailableRooms(checkIn: string, checkOut: string) {
   })
   return response.data
 }
+
+export async function getRoomDetail(id: string) {
+  const response = await api.get(`/room-detail/${id}`)
+  return response.data
+}

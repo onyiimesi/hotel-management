@@ -21,8 +21,19 @@ export interface IRoom {
   quantity: number
   bed_type: string
   images: string[]
+  room_type: IRoomType
 }
 
+export interface IRoomType {
+  description: string
+  price: number
+  image: string
+  guests: number
+  units: number
+  quantity: number
+  bed_type: string
+  images: string[]
+}
 export interface RoomResponse {
   id: number
   name: string

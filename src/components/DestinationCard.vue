@@ -30,26 +30,25 @@
           <div class="text-md">₦{{ formatNumber(price) }}</div>
         </div>
 
-        <RouterLink v-if="slug" :to="`/hotels/${slug}`">
-          <button
-            class="bg-blue-600 text-white text-sm font-medium rounded px-4 py-2 hover:cursor-pointer"
-          >
-            Reserve
-          </button>
-        </RouterLink>
+        <button
+          class="bg-blue-600 text-white text-sm font-medium rounded px-4 py-2 hover:cursor-pointer"
+          @click="goToBooking(id, slug)"
+        >
+          Reserve
+        </button>
       </div>
     </div>
 
     <Modal :show="showModal" @close="showModal = false">
       <div>
         <Swiper
+          :modules="[Navigation, Pagination]"
           :navigation="true"
           :pagination="{ clickable: true }"
           class="h-64 w-full rounded-lg overflow-hidden"
         >
           <SwiperSlide v-for="(img, index) in images" :key="index">
             <img :src="img" class="object-cover w-full h-full" alt="" />
-            {{ img }}
           </SwiperSlide>
         </Swiper>
         <h2 class="text-xl font-bold mb-2">{{ title }}</h2>
@@ -58,7 +57,6 @@
           <li><strong>Size:</strong> {{ size }}</li>
           <li><strong>Occupancy:</strong> Sleeps {{ sleeps }}</li>
           <li><strong>Bed:</strong> {{ bedType }}</li>
-          <li><strong>Refund Policy:</strong> Fully refundable before {{ refundableBefore }}</li>
         </ul>
       </div>
     </Modal>
@@ -87,14 +85,16 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { useRouter } from 'vue-router'
 import Modal from './Modal.vue'
 import { Swiper, SwiperSlide } from 'swiper/vue'
+import { Navigation, Pagination } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
 
 defineProps<{
+  id: number
   image: string
   title: string
   description?: string
@@ -119,4 +119,15 @@ const formatNumber = (value: string | number): string => {
 }
 
 const showModal = ref(false)
+const router = useRouter()
+
+const goToBooking = (id: number, slug: string) => {
+  router.push({
+    name: 'booking',
+    query: {
+      id: id,
+      name: slug,
+    },
+  })
+}
 </script>

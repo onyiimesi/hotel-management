@@ -24,6 +24,7 @@
                   <DestinationCard
                     v-for="room in rooms"
                     :key="room.id"
+                    :id="room.id"
                     :title="room.name"
                     :description="room.description"
                     :price="room.price"
@@ -154,17 +155,6 @@ onMounted(() => {
 })
 
 const tabs = [{ label: 'Overview' }, { label: 'Rooms' }, { label: 'Policies' }]
-
-// const goToBooking = (room: any) => {
-//   router.push({
-//     name: 'booking',
-//     query: {
-//       name: room.name,
-//       price: room.price,
-//       description: room.description,
-//     },
-//   })
-// }
 </script>
 
 <style scoped>

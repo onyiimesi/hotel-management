@@ -41,9 +41,9 @@
         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 sticky top-24 h-fit">
           <h3 class="text-lg font-semibold mb-4 text-gray-900">Booking Summary</h3>
           <div class="text-sm text-gray-700 space-y-2">
-            <p><strong>Room:</strong> {{ room.name }}</p>
-            <p><strong>Description:</strong> {{ room.description }}</p>
-            <p><strong>Guests:</strong> 2 Adults</p>
+            <p><strong>Room:</strong> {{ room?.name }}</p>
+            <p><strong>Description:</strong> {{ room?.room_type?.description }}</p>
+            <p><strong>Guests:</strong> {{ room?.room_type?.guests }}</p>
             <p><strong>Check-in:</strong> Apr 29</p>
             <p><strong>Check-out:</strong> May 2</p>
           </div>
@@ -51,17 +51,17 @@
           <div class="space-y-1 text-sm">
             <div class="flex justify-between">
               <span>Base Price</span>
-              <span>{{ room.price }}</span>
+              <span>{{ room?.price }}</span>
             </div>
             <div class="flex justify-between">
               <span>Taxes & Fees</span>
-              <span>$30</span>
+              <span>₦{{ formatNumber(room?.room_type?.price) }}</span>
             </div>
           </div>
           <hr class="my-4" />
           <div class="flex justify-between font-bold text-blue-600">
             <span>Total</span>
-            <span>{{ totalPrice }}</span>
+            <span>₦{{ formatNumber(room?.room_type?.price) }}</span>
           </div>
         </div>
       </div>
@@ -71,16 +71,15 @@
 
 <script lang="ts" setup>
 import { useRoute, useRouter } from 'vue-router'
-import { ref, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import AppLayout from '@/layouts/AppLayout.vue'
+import { getRoomDetail } from '@/lib/services/RoomService'
+import type { IRoom } from '@/lib/types/response'
 
 const route = useRoute()
 const router = useRouter()
-const room = {
-  name: route.query.name as string,
-  price: route.query.price as string,
-  description: route.query.description as string,
-}
+const room = ref<IRoom>()
+const isLoading = ref(true)
 
 const form = ref({
   name: '',
@@ -112,26 +111,31 @@ function payWithPaystack() {
   // })
   router.push({
     path: '/booking/success',
-    query: {
-      name: form.value.name,
-      email: form.value.email,
-      phone: form.value.phone,
-      room: room.name,
-    },
   })
 
   //handler.openIframe()
 }
 
-function calculateAmountInKobo() {
-  const price = Number(room.price.replace(/[^0-9.]/g, '')) || 0
-  return (price + 30) * 100
+const getRoomDetails = async () => {
+  try {
+    isLoading.value = true
+    const response = await getRoomDetail(route.query.id as string)
+    room.value = response.data
+  } catch (error) {
+    console.error('Error loading room:', error)
+  } finally {
+    isLoading.value = false
+  }
 }
 
-const totalPrice = computed(() => {
-  const base = Number(room.price.replace(/[^0-9.-]+/g, '')) || 0
-  return `$${base + 30}`
+onMounted(() => {
+  getRoomDetails()
 })
+
+const formatNumber = (value: string | number): string => {
+  const number = typeof value === 'string' ? parseFloat(value) : value
+  return Number(number).toLocaleString()
+}
 </script>
 
 <style scoped></style>
