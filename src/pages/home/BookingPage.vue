@@ -2,26 +2,34 @@
   <AppLayout>
     <div class="bg-gray-50 py-10 px-4">
       <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-10">
-        <!-- Left Section: Form and Payment -->
         <div class="lg:col-span-2 space-y-8">
           <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
             <h2 class="text-xl font-semibold mb-6 text-gray-800">Your information</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                v-model="form.name"
-                placeholder="Full Name"
-                class="w-full border border-gray-300 rounded-md px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              />
-              <input
-                v-model="form.email"
-                placeholder="Email Address"
-                class="w-full border border-gray-300 rounded-md px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              />
-              <input
-                v-model="form.phone"
-                placeholder="Phone Number"
-                class="w-full border border-gray-300 rounded-md px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none md:col-span-2"
-              />
+              <div>
+                <label for="">Full name <span class="text-red-500">*</span></label>
+                <input
+                  v-model="form.name"
+                  placeholder="John Doe"
+                  class="w-full border border-gray-300 rounded-md px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label for="">Email address <span class="text-red-500">*</span></label>
+                <input
+                  v-model="form.email"
+                  placeholder="email@email.com"
+                  class="w-full border border-gray-300 rounded-md px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label for="">Phone number <span class="text-red-500">*</span></label>
+                <input
+                  v-model="form.phone"
+                  placeholder="08000909090"
+                  class="w-full border border-gray-300 rounded-md px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none md:col-span-2"
+                />
+              </div>
             </div>
           </div>
 
@@ -30,9 +38,32 @@
             <p class="text-sm text-gray-500 mb-4">All payments are securely processed.</p>
             <button
               @click="payWithPaystack"
-              class="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white py-3 rounded-lg font-medium shadow"
+              class="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white py-3 rounded-lg font-medium shadow hover:cursor-pointer transition duration-300"
             >
-              Pay
+              <span v-if="!isLoadingPayment">Pay</span>
+              <span v-else class="flex items-center gap-2 text-center justify-center">
+                <svg
+                  class="animate-spin h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  ></circle>
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                  />
+                </svg>
+                Processing...
+              </span>
             </button>
           </div>
         </div>
@@ -69,16 +100,17 @@
 </template>
 
 <script lang="ts" setup>
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { ref, onMounted } from 'vue'
 import AppLayout from '@/layouts/AppLayout.vue'
 import { getRoomDetail } from '@/lib/services/RoomService'
 import type { IRoom } from '@/lib/types/response'
+import { makePayment } from '@/lib/services/BookingService'
 
 const route = useRoute()
-const router = useRouter()
 const room = ref<IRoom>()
 const isLoading = ref(true)
+const isLoadingPayment = ref(false)
 
 const form = ref({
   name: '',
@@ -86,33 +118,41 @@ const form = ref({
   phone: '',
 })
 
-function payWithPaystack() {
-  // const handler = (window as any).PaystackPop.setup({
-  //   key: 'your_public_key_here',
-  //   email: form.value.email,
-  //   amount: calculateAmountInKobo(),
-  //   currency: 'NGN',
-  //   ref: `ref_${Date.now()}`,
-  //   callback: () => {
-  //     router.push({
-  //       path: '/booking/success',
-  //       query: {
-  //         name: form.value.name,
-  //         email: form.value.email,
-  //         phone: form.value.phone,
-  //         room: room.name,
-  //       },
-  //     })
-  //   },
-  //   onClose: () => {
-  //     alert('Payment window closed.')
-  //   },
-  // })
-  router.push({
-    path: '/booking/success',
-  })
+const payWithPaystack = async () => {
+  if (!form.value.name || !form.value.email || !form.value.phone) {
+    alert('Please fill in all required fields.')
+    return
+  }
 
-  //handler.openIframe()
+  if (!room.value) return
+
+  isLoadingPayment.value = true
+
+  try {
+    const amount = room.value.room_type?.price || 0
+
+    const response = await makePayment({
+      email: form.value.email,
+      name: form.value.name,
+      phone: form.value.phone,
+      amount,
+      room_id: room.value.id,
+      room_name: room.value.name,
+      guests: room.value.room_type?.guests || 1,
+      check_in: '2023-04-29',
+      check_out: '2023-05-02',
+    })
+
+    if (response.data.authorization_url) {
+      window.location.href = response.data.authorization_url
+    } else {
+      alert('Failed to initialize payment.')
+    }
+  } catch (err) {
+    console.error('Payment error', err)
+  } finally {
+    isLoadingPayment.value = false
+  }
 }
 
 const getRoomDetails = async () => {
